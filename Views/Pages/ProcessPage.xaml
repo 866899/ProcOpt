@@ -1,0 +1,211 @@
+<UserControl x:Class="ProcOpt.Views.Pages.ProcessPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <!-- 优先级徽章（按级别语义着色） -->
+        <DataTemplate x:Key="PriorityCell">
+            <Border x:Name="chip" Style="{StaticResource Badge}">
+                <TextBlock x:Name="t" Style="{StaticResource BadgeText}" Text="{Binding PriorityText}" />
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding Priority}" Value="RealTime">
+                    <Setter TargetName="chip" Property="Background" Value="#33FF6B6B" />
+                    <Setter TargetName="t" Property="Foreground" Value="{StaticResource DangerBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Priority}" Value="High">
+                    <Setter TargetName="chip" Property="Background" Value="#33D9A441" />
+                    <Setter TargetName="t" Property="Foreground" Value="{StaticResource AccentBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Priority}" Value="AboveNormal">
+                    <Setter TargetName="chip" Property="Background" Value="#26D9A441" />
+                    <Setter TargetName="t" Property="Foreground" Value="#FFE7B45C" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Priority}" Value="BelowNormal">
+                    <Setter TargetName="t" Property="Foreground" Value="#FF8FA3AD" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Priority}" Value="Idle">
+                    <Setter TargetName="t" Property="Foreground" Value="{StaticResource TextFaint}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!-- 能效徽章 -->
+        <DataTemplate x:Key="EcoCell">
+            <Border x:Name="chip" Style="{StaticResource Badge}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="bolt" Text="&#xE945;" FontFamily="{StaticResource IconFont}" FontSize="9"
+                               Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center"
+                               Margin="0,1,5,0" Visibility="Collapsed" />
+                    <TextBlock x:Name="t" Style="{StaticResource BadgeText}" Text="{Binding EcoText}" />
+                </StackPanel>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding EcoOn}" Value="True">
+                    <Setter TargetName="chip" Property="Background" Value="#266CCB5F" />
+                    <Setter TargetName="t" Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                    <Setter TargetName="bolt" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EcoOn}" Value="{x:Null}">
+                    <Setter TargetName="t" Property="Foreground" Value="{StaticResource TextFaint}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!-- CPU：等宽数字 + 内联微条 -->
+        <DataTemplate x:Key="CpuCell">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Width="44" Margin="0,0,8,0">
+                    <TextBlock Style="{StaticResource MonoCell}" Text="{Binding Cpu, StringFormat={}{0:F1}%}"
+                               Foreground="{StaticResource TextPrimary}" x:Name="cpuText" />
+                </Border>
+                <Border Width="66" Height="4" CornerRadius="2" Background="#14FFFFFF" VerticalAlignment="Center">
+                    <Border Width="{Binding Cpu}" MaxWidth="66" HorizontalAlignment="Left" CornerRadius="2"
+                            x:Name="cpuBar">
+                        <Border.Background>
+                            <SolidColorBrush Color="{StaticResource ColAccent}" />
+                        </Border.Background>
+                    </Border>
+                </Border>
+            </StackPanel>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding Cpu}" Value="0">
+                    <Setter TargetName="cpuBar" Property="Width" Value="0" />
+                    <Setter TargetName="cpuText" Property="Foreground" Value="{StaticResource TextFaint}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 搜索 + 刷新 -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,12">
+            <Button DockPanel.Dock="Right" Width="44" Height="36" Click="Refresh_Click" Margin="10,0,0,0"
+                    ToolTip="立即刷新" Padding="0">
+                <TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFont}" FontSize="15"
+                           Foreground="{StaticResource TextSecondary}" />
+            </Button>
+            <TextBox x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=200}"
+                     Tag="搜索进程名或 PID…" Padding="10,8" />
+        </DockPanel>
+
+        <!-- 操作工具栏（分组） -->
+        <WrapPanel Grid.Row="1" Margin="0,0,0,12">
+            <!-- 优先级组 -->
+            <TextBlock Text="优先级" VerticalAlignment="Center" Margin="0,0,8,0"
+                       Foreground="{StaticResource TextFaint}" FontSize="11.5" />
+            <ComboBox x:Name="PriCombo" Width="112">
+                <ComboBoxItem Content="实时" Tag="RealTime" />
+                <ComboBoxItem Content="高" Tag="High" />
+                <ComboBoxItem Content="高于正常" Tag="AboveNormal" />
+                <ComboBoxItem Content="正常" Tag="Normal" />
+                <ComboBoxItem Content="低于正常" Tag="BelowNormal" />
+                <ComboBoxItem Content="低" Tag="Idle" />
+            </ComboBox>
+            <Button Content="应用" Style="{StaticResource AccentButton}" MinWidth="66"
+                    Click="ApplyPri_Click" Margin="8,0,16,0" />
+
+            <!-- 能效组 -->
+            <TextBlock Text="能效" VerticalAlignment="Center" Margin="0,0,8,0"
+                       Foreground="{StaticResource TextFaint}" FontSize="11.5" />
+            <Button Click="EcoOn_Click" ToolTip="开启 EcoQoS 效率模式（Win11 任务管理器同款）">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE945;" FontFamily="{StaticResource IconFont}" FontSize="12" Margin="0,1,7,0" />
+                    <TextBlock Text="效率模式" />
+                </StackPanel>
+            </Button>
+            <Button Content="标准" Click="EcoOff_Click" Margin="8,0,16,0" />
+
+            <!-- 高级组 -->
+            <Separator Style="{StaticResource VSeparator}" />
+            <Button Click="Affinity_Click" Margin="8,0,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE950;" FontFamily="{StaticResource IconFont}" FontSize="13" Margin="0,1,7,0" />
+                    <TextBlock Text="相关性…" />
+                </StackPanel>
+            </Button>
+            <Button Content="存为规则…" Click="SaveRule_Click" Margin="8,0,0,0" />
+        </WrapPanel>
+
+        <!-- 进程列表 -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="8,6">
+            <DataGrid x:Name="Grid" SelectionChanged="Grid_SelectionChanged"
+                      ItemsSource="{Binding Processes}"
+                      EnableRowVirtualization="True" VirtualizingPanel.IsVirtualizing="True">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="优先级">
+                            <MenuItem Header="实时（警告：可能使系统无响应）" Tag="RealTime" Click="PriMenu_Click" />
+                            <MenuItem Header="高" Tag="High" Click="PriMenu_Click" />
+                            <MenuItem Header="高于正常" Tag="AboveNormal" Click="PriMenu_Click" />
+                            <MenuItem Header="正常" Tag="Normal" Click="PriMenu_Click" />
+                            <MenuItem Header="低于正常" Tag="BelowNormal" Click="PriMenu_Click" />
+                            <MenuItem Header="低" Tag="Idle" Click="PriMenu_Click" />
+                        </MenuItem>
+                        <MenuItem Header="能效模式">
+                            <MenuItem Header="开启（效率模式 EcoQoS）" Tag="on" Click="EcoMenu_Click" />
+                            <MenuItem Header="关闭（标准）" Tag="off" Click="EcoMenu_Click" />
+                        </MenuItem>
+                        <MenuItem Header="设置相关性…" Click="Affinity_Click" />
+                        <MenuItem Header="整理内存（清空工作集）" Click="CleanMem_Click" />
+                        <MenuItem Header="存为规则…" Click="SaveRule_Click" />
+                        <Separator />
+                        <MenuItem Header="选中全部同名实例" Click="SelectSame_Click" />
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="进程" Width="230" SortMemberPath="Name">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Image Source="{Binding Icon}" Width="16" Height="16"
+                                           RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding Name}" Margin="9,0,0,0" VerticalAlignment="Center"
+                                               FontSize="12.5" Foreground="{StaticResource TextPrimary}"
+                                               TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Path}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="PID" Width="64" SortMemberPath="Pid">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Style="{StaticResource MonoCell}" Foreground="{StaticResource TextSecondary}"
+                                           Text="{Binding Pid}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="优先级" Width="94" SortMemberPath="Priority"
+                                            CellTemplate="{StaticResource PriorityCell}" />
+                    <DataGridTemplateColumn Header="能效模式" Width="100" SortMemberPath="EcoOn"
+                                            CellTemplate="{StaticResource EcoCell}" />
+                    <DataGridTemplateColumn Header="CPU" Width="150" SortMemberPath="Cpu"
+                                            CellTemplate="{StaticResource CpuCell}" />
+                    <DataGridTemplateColumn Header="内存" Width="86" SortMemberPath="MemMb">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Style="{StaticResource MonoCell}"
+                                           Text="{Binding MemMb, StringFormat={}{0:F0} M}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="相关性" Width="*" SortMemberPath="AffinityMask">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock FontFamily="{StaticResource MonoFont}" FontSize="11.5"
+                                           Foreground="{StaticResource TextSecondary}"
+                                           Text="{Binding AffinityText}" VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

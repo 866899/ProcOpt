@@ -1,0 +1,73 @@
+<Window x:Class="ProcOpt.Views.RuleEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="规则编辑"
+        Width="500" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBase}"
+        Foreground="{StaticResource TextPrimary}"
+        FontFamily="{StaticResource MainFont}">
+    <StackPanel Margin="22">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+            <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" FontSize="15"
+                       Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+            <TextBlock x:Name="TitleText" Text="新建规则" FontSize="15" FontWeight="SemiBold" Margin="9,0,0,0"
+                       FontFamily="{StaticResource DisplayFont}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <TextBlock Text="进程名" FontSize="12.5" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,6" />
+        <TextBox x:Name="NameBox" Tag="例如 chrome（可带或不带 .exe）" FontFamily="{StaticResource MonoFont}" />
+
+        <!-- 优先级 -->
+        <Border Style="{StaticResource Card}" Margin="0,14,0,0">
+            <StackPanel>
+                <CheckBox x:Name="PriCheck" Content="设置优先级" Checked="Check_Changed" Unchecked="Check_Changed" />
+                <ComboBox x:Name="PriCombo" Margin="26,10,0,0" Width="150" HorizontalAlignment="Left"
+                          IsEnabled="False">
+                    <ComboBoxItem Content="实时" Tag="RealTime" />
+                    <ComboBoxItem Content="高" Tag="High" />
+                    <ComboBoxItem Content="高于正常" Tag="AboveNormal" />
+                    <ComboBoxItem Content="正常" Tag="Normal" />
+                    <ComboBoxItem Content="低于正常" Tag="BelowNormal" />
+                    <ComboBoxItem Content="低" Tag="Idle" />
+                </ComboBox>
+            </StackPanel>
+        </Border>
+
+        <!-- 能效 -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <CheckBox x:Name="EcoCheck" Content="设置能效模式" Checked="Check_Changed" Unchecked="Check_Changed" />
+                <StackPanel Orientation="Horizontal" Margin="26,10,0,0">
+                    <RadioButton x:Name="EcoOnRadio" GroupName="eco">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE945;" FontFamily="{StaticResource IconFont}" FontSize="11"
+                                       Foreground="{StaticResource SuccessBrush}" Margin="0,1,6,0" />
+                            <TextBlock Text="效率模式（EcoQoS）" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Content="标准" GroupName="eco" Margin="18,0,0,0" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- 相关性 -->
+        <Border Style="{StaticResource Card}">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Content="选择…" Click="PickAffinity_Click" VerticalAlignment="Center" />
+                <StackPanel>
+                    <CheckBox x:Name="AffCheck" Content="设置 CPU 相关性" Checked="Check_Changed" Unchecked="Check_Changed" />
+                    <TextBlock x:Name="AffText" Text="未选择" Margin="26,8,12,0" FontFamily="{StaticResource MonoFont}"
+                               FontSize="12" Foreground="{StaticResource TextSecondary}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <CheckBox x:Name="ApplyNowCheck" Content="保存后立即应用到正在运行的进程" Margin="0,8,0,0" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <Button Content="取消" Click="Cancel_Click" Width="88" />
+            <Button Content="保存" Style="{StaticResource AccentButton}" Click="Save_Click" Width="88" Margin="10,0,0,0" />
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -1,0 +1,127 @@
+<UserControl x:Class="ProcOpt.Views.Pages.LogPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="0,0,0,12">
+            <Button DockPanel.Dock="Left" Command="{Binding ClearCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFont}" FontSize="12" Margin="0,1,7,0"
+                               Foreground="{StaticResource DangerBrush}" />
+                    <TextBlock Text="清空日志" />
+                </StackPanel>
+            </Button>
+            <TextBlock Text="规则命中与手动操作记录（最多保留 1000 条）" VerticalAlignment="Center" Margin="14,0,0,0"
+                       Foreground="{StaticResource TextFaint}" FontSize="12" />
+        </DockPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8,6">
+            <Grid>
+                <DataGrid x:Name="LogGrid" ItemsSource="{Binding Entries}">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="时间" Width="76" SortMemberPath="Time">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontFamily="{StaticResource MonoFont}" FontSize="11"
+                                               Foreground="{StaticResource TextFaint}"
+                                               Text="{Binding Time, StringFormat=HH:mm:ss}" VerticalAlignment="Center" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="来源" Width="82" SortMemberPath="Source">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="chip" Style="{StaticResource Badge}">
+                                        <TextBlock x:Name="t" Style="{StaticResource BadgeText}" FontSize="10.5"
+                                                   Text="{Binding Source}" />
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Source}" Value="自动应用">
+                                            <Setter TargetName="chip" Property="Background" Value="#26D9A441" />
+                                            <Setter TargetName="t" Property="Foreground" Value="{StaticResource AccentBrush}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Source}" Value="手动">
+                                            <Setter TargetName="t" Property="Foreground" Value="{StaticResource TextSecondary}" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="进程" Width="160" SortMemberPath="ProcessName">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                               Foreground="{StaticResource TextPrimary}" Text="{Binding ProcessName}"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="PID" Width="66" SortMemberPath="Pid">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource MonoCell}" FontSize="11"
+                                               Foreground="{StaticResource TextSecondary}" Text="{Binding Pid}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="操作" Width="300" SortMemberPath="Action">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontFamily="{StaticResource MonoFont}" FontSize="11.5"
+                                               Foreground="{StaticResource TextSecondary}" Text="{Binding Action}"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Action}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="结果" Width="72" SortMemberPath="Success">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock x:Name="resIcon" FontFamily="{StaticResource IconFont}" FontSize="11"
+                                                   Foreground="{StaticResource SuccessBrush}" Text="&#xE73E;"
+                                                   VerticalAlignment="Center" Margin="0,1,7,0" />
+                                        <TextBlock x:Name="res" Text="成功" FontSize="11.5"
+                                                   Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Success}" Value="False">
+                                            <Setter TargetName="res" Property="Text" Value="失败" />
+                                            <Setter TargetName="res" Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                            <Setter TargetName="resIcon" Property="Text" Value="&#xE711;" />
+                                            <Setter TargetName="resIcon" Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="详情" Width="*" SortMemberPath="Message">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontSize="11.5" Foreground="{StaticResource DangerBrush}"
+                                               Text="{Binding Message}" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis" ToolTip="{Binding Message}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- 空状态 -->
+                <Border x:Name="EmptyState" Background="{StaticResource CardBg}" CornerRadius="10"
+                        Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center" Margin="0,40">
+                        <TextBlock Text="&#xE823;" Style="{StaticResource EmptyStateIcon}" />
+                        <TextBlock Text="暂无日志记录" Style="{StaticResource EmptyStateTitle}" Margin="0,14,0,6" />
+                        <TextBlock Text="规则命中或手动设置进程后，操作记录会显示在这里。"
+                                   Style="{StaticResource EmptyStateDesc}" Margin="24,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

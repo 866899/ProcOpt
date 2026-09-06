@@ -1,0 +1,20 @@
+# Build outputs
+[Bb]in/
+[Oo]bj/
+publish/
+publish2/
+publish3/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Rider
+.idea/
+
+# Test results
+TestResults/
+
+# AI agent workspace data
+.codebuddy/

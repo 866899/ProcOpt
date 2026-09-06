@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>ProcOpt</AssemblyName>
+    <RootNamespace>ProcOpt</RootNamespace>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <Version>1.5.0</Version>
+    <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+    <!-- IncludeAllContentForSelfExtract：单文件运行时把全部程序集解压到磁盘，
+         使第三方库（LibreHardwareMonitor）的 Assembly.Location 有效，否则其无法释放 WinRing0 驱动 -->
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+  </PropertyGroup>
+
+  <!-- 移除 WinForms 全局 using，避免与 WPF 类型（Application/UserControl 等）冲突 -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 0.9.6：PawnIO 驱动框架（需系统预装 PawnIO，一次安装永久有效）。
+         0.9.5 的 WinRing0 已实测被微软易受攻击驱动阻止名单拦截（HVCI 关闭也拦），不可用 -->
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
+    <PackageReference Include="System.Management" Version="10.0.2" />
+  </ItemGroup>
+
+  <!-- PawnIO 官方安装器（namazso 签名，允许再分发）：运行时检测缺失则静默安装，
+       与 LHM / FanControl / Cleanmeter 分发模式一致 -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\PawnIO_setup.exe">
+      <LogicalName>ProcOpt.Resources.PawnIO_setup.exe</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

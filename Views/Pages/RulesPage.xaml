@@ -1,0 +1,144 @@
+<UserControl x:Class="ProcOpt.Views.Pages.RulesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="0,0,0,12">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="导入…" Command="{Binding ImportCommand}" ToolTip="从 JSON 文件导入规则（跳过同名）" />
+                <Button Content="导出…" Command="{Binding ExportCommand}" Margin="8,0,0,0"
+                        ToolTip="将全部规则导出为 JSON 文件，可分享或在其他电脑导入" />
+            </StackPanel>
+            <Button DockPanel.Dock="Left" Style="{StaticResource AccentButton}" Command="{Binding AddCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="12" Margin="0,1,7,0" />
+                    <TextBlock Text="新建规则" />
+                </StackPanel>
+            </Button>
+            <TextBlock Text="匹配的进程启动时将自动应用规则设置" VerticalAlignment="Center" Margin="14,0,10,0"
+                       Foreground="{StaticResource TextFaint}" FontSize="12" TextTrimming="CharacterEllipsis" />
+        </DockPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8,6">
+            <Grid>
+                <DataGrid x:Name="RulesGrid" ItemsSource="{Binding Rules}">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="启用" Width="58">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding Enabled, UpdateSourceTrigger=PropertyChanged}"
+                                              Checked="Enabled_Changed" Unchecked="Enabled_Changed"
+                                              HorizontalAlignment="Center" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="进程名" Width="170" SortMemberPath="ProcessName">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="6" Height="6" CornerRadius="3" VerticalAlignment="Center"
+                                                Background="{StaticResource AccentBrush}" Margin="0,0,8,0" />
+                                        <TextBlock Text="{Binding ProcessName}" FontFamily="{StaticResource MonoFont}"
+                                                   FontSize="12.5" Foreground="{StaticResource TextPrimary}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="优先级" Width="90" SortMemberPath="Priority">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="chip" Style="{StaticResource Badge}">
+                                        <TextBlock x:Name="t" Style="{StaticResource BadgeText}" Text="{Binding PriorityDisplay}" />
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding SetPriority}" Value="False">
+                                            <Setter TargetName="t" Property="Foreground" Value="{StaticResource TextFaint}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Priority}" Value="RealTime">
+                                            <Setter TargetName="chip" Property="Background" Value="#33FF6B6B" />
+                                            <Setter TargetName="t" Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Priority}" Value="High">
+                                            <Setter TargetName="t" Property="Foreground" Value="{StaticResource AccentBrush}" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="能效" Width="88" SortMemberPath="EcoDisplay">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="chip" Style="{StaticResource Badge}">
+                                        <TextBlock x:Name="t" Style="{StaticResource BadgeText}" Text="{Binding EcoDisplay}" />
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding EcoDisplay}" Value="效率模式">
+                                            <Setter TargetName="chip" Property="Background" Value="#266CCB5F" />
+                                            <Setter TargetName="t" Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding SetEco}" Value="False">
+                                            <Setter TargetName="t" Property="Foreground" Value="{StaticResource TextFaint}" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="相关性" Width="140" SortMemberPath="AffinityDisplay">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontFamily="{StaticResource MonoFont}" FontSize="11.5"
+                                               Foreground="{StaticResource TextSecondary}"
+                                               Text="{Binding AffinityDisplay}" VerticalAlignment="Center" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="创建" Width="96" SortMemberPath="CreatedAt">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource MonoCell}" FontSize="11"
+                                               Foreground="{StaticResource TextFaint}" Text="{Binding CreatedDisplay}"
+                                               TextAlignment="Left" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="操作" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="立即应用" Command="{Binding DataContext.ApplyNowCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}" Padding="10,4" FontSize="12" />
+                                        <Button Content="编辑" Margin="6,0,0,0" Padding="12,4" FontSize="12"
+                                                Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}" />
+                                        <Button Content="删除" Style="{StaticResource DangerButton}" Margin="6,0,0,0" Padding="12,4" FontSize="12"
+                                                Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- 空状态引导 -->
+                <Border x:Name="EmptyState" Background="{StaticResource CardBg}" CornerRadius="10"
+                        Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center" Margin="0,40">
+                        <TextBlock Text="&#xE8FD;" Style="{StaticResource EmptyStateIcon}" />
+                        <TextBlock Text="还没有自动化规则" Style="{StaticResource EmptyStateTitle}" Margin="0,14,0,6" />
+                        <TextBlock Text="在进程页右键任意进程选择「存为规则…」，&#xD;或点击上方「新建规则」，即可让设置在该进程每次启动时自动生效。"
+                                   Style="{StaticResource EmptyStateDesc}" Margin="24,0" />
+                        <Button Content="＋ 新建第一条规则" Style="{StaticResource AccentButton}"
+                                Command="{Binding AddCommand}" HorizontalAlignment="Center" Margin="0,18,0,0"
+                                Padding="18,9" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

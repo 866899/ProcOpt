@@ -1,0 +1,162 @@
+<Window x:Class="ProcOpt.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ProcOpt — 进程调优"
+        Height="740" Width="1160" MinWidth="1000" MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgBase}"
+        Foreground="{StaticResource TextPrimary}"
+        FontFamily="{StaticResource MainFont}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="232" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ==================== 左侧：控制台导航 ==================== -->
+        <Border Grid.Column="0" BorderBrush="#16FFFFFF" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <!-- Logo 区 -->
+                <StackPanel DockPanel.Dock="Top" Margin="20,20,20,16">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="34" Height="34" CornerRadius="9" Background="{StaticResource AccentBrush}">
+                            <TextBlock Text="&#xE945;" FontFamily="{StaticResource IconFont}" FontSize="17"
+                                       Foreground="#FF151313" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="PROC OPT" FontFamily="{StaticResource MonoFont}" FontSize="13.5"
+                                       FontWeight="Bold" Foreground="{StaticResource TextPrimary}" />
+                            <TextBlock Text="能效 · 优先级 · 相关性" FontSize="10.5"
+                                       Foreground="{StaticResource TextFaint}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 底部系统状态卡 -->
+                <Border DockPanel.Dock="Bottom" Margin="14,0,14,14" Padding="13,12" CornerRadius="10"
+                        Background="#0FFFFFFF" BorderBrush="#14FFFFFF" BorderThickness="1">
+                    <StackPanel>
+                        <!-- 监控状态 + 呼吸灯 -->
+                        <StackPanel Orientation="Horizontal" Margin="1,0,0,7">
+                            <Ellipse x:Name="PulseDot" Width="7" Height="7" Fill="{StaticResource AccentBrush}"
+                                     VerticalAlignment="Center" />
+                            <TextBlock x:Name="PulseText" Text="监控运行中" FontSize="11" Margin="8,0,0,0"
+                                       Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <!-- CPU 型号 -->
+                        <TextBlock x:Name="SysCpuName" Text="…" FontSize="11" TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource TextSecondary}" Margin="1,0,0,8"
+                                   ToolTip="处理器型号" />
+                        <!-- P/E 核格子图 -->
+                        <WrapPanel x:Name="CoreMap" Margin="1,0,0,8" />
+                        <TextBlock x:Name="SysCoreSummary" FontFamily="{StaticResource MonoFont}" FontSize="10.5"
+                                   Foreground="{StaticResource TextFaint}" Margin="1,0,0,10" />
+
+                        <!-- 实时内存图表 -->
+                        <DockPanel Margin="1,0,0,5">
+                            <TextBlock Text="MEMORY" FontSize="9.5" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextFaint}" VerticalAlignment="Center" />
+                            <!-- 清理按钮 -->
+                            <Button x:Name="MemCleanBtn" DockPanel.Dock="Right" Click="CleanMemory_Click"
+                                    ToolTip="清理内存：整理全部进程工作集并清空系统备用列表"
+                                    Background="Transparent" BorderThickness="0" Padding="4,1" Cursor="Hand"
+                                    Margin="6,0,0,0" VerticalAlignment="Center">
+                                <TextBlock x:Name="MemCleanIcon" Text="&#xE74D;" FontFamily="{StaticResource IconFont}"
+                                           FontSize="12" Foreground="{StaticResource TextSecondary}"
+                                           RenderTransformOrigin="0.5,0.5" />
+                            </Button>
+                            <TextBlock x:Name="MemPct" DockPanel.Dock="Right" FontFamily="{StaticResource MonoFont}"
+                                       FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"
+                                       VerticalAlignment="Center" Text="--%" />
+                        </DockPanel>
+                        <Border Height="42" CornerRadius="6" Background="#0AFFFFFF" SnapsToDevicePixels="True">
+                            <Canvas x:Name="MemCanvas" ClipToBounds="True">
+                                <Path x:Name="MemFill" Fill="#26D9A441" />
+                                <Polyline x:Name="MemLine" Stroke="{StaticResource AccentBrush}"
+                                          StrokeThickness="1.5" StrokeLineJoin="Round" StrokeStartLineCap="Round" />
+                            </Canvas>
+                        </Border>
+                        <TextBlock x:Name="MemDetail" FontFamily="{StaticResource MonoFont}" FontSize="10"
+                                   Foreground="{StaticResource TextFaint}" Margin="1,5,0,0" Text="— / — GB" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 导航 -->
+                <ScrollViewer VerticalScrollBarVisibility="Hidden">
+                    <StackPanel Margin="0,4,0,10">
+                        <TextBlock Text="监控" Style="{StaticResource GroupHeaderText}" />
+                        <RadioButton Style="{StaticResource NavRadio}" IsChecked="True" Checked="Nav_Checked" Tag="system">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7F4;" FontFamily="{StaticResource IconFont}" FontSize="15"
+                                           Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
+                                <TextBlock Text="系统信息" Margin="11,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton Style="{StaticResource NavRadio}" Checked="Nav_Checked" Tag="process">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE9D9;" FontFamily="{StaticResource IconFont}" FontSize="15"
+                                           Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
+                                <TextBlock Text="进程管理" Margin="11,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton Style="{StaticResource NavRadio}" Checked="Nav_Checked" Tag="log">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE823;" FontFamily="{StaticResource IconFont}" FontSize="15"
+                                           Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
+                                <TextBlock Text="应用日志" Margin="11,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <TextBlock Text="自动化" Style="{StaticResource GroupHeaderText}" />
+                        <RadioButton Style="{StaticResource NavRadio}" Checked="Nav_Checked" Tag="rules">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" FontSize="15"
+                                           Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
+                                <TextBlock Text="规则" Margin="11,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <TextBlock Text="系统" Style="{StaticResource GroupHeaderText}" />
+                        <RadioButton Style="{StaticResource NavRadio}" Checked="Nav_Checked" Tag="settings">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE713;" FontFamily="{StaticResource IconFont}" FontSize="15"
+                                           Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" />
+                                <TextBlock Text="设置" Margin="11,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- ==================== 右侧：内容 + 状态栏 ==================== -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <ContentControl x:Name="PageHost" Grid.Row="0" Margin="16,14,16,4" />
+            <Border Grid.Row="1" BorderBrush="#14FFFFFF" BorderThickness="0,1,0,0" Background="#0AFFFFFF"
+                    Padding="18,8">
+                <DockPanel LastChildFill="False">
+                    <TextBlock x:Name="StatusLeft" DockPanel.Dock="Left" FontSize="12"
+                               Foreground="{StaticResource TextSecondary}" Text="就绪" VerticalAlignment="Center" />
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- 权限徽章 -->
+                        <Border x:Name="PrivBadge" CornerRadius="8" Padding="8,2.5" Background="#336CCB5F">
+                            <TextBlock x:Name="StatusPriv" FontFamily="{StaticResource MonoFont}" FontSize="10.5"
+                                       Foreground="{StaticResource SuccessBrush}" />
+                        </Border>
+                        <TextBlock Text="  ·  " Foreground="{StaticResource TextFaint}" FontSize="12" />
+                        <TextBlock x:Name="StatusAuto" FontSize="12" Foreground="{StaticResource TextSecondary}" />
+                        <TextBlock Text="  ·  " Foreground="{StaticResource TextFaint}" FontSize="12" />
+                        <TextBlock x:Name="StatusProc" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                   Foreground="{StaticResource TextSecondary}" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
