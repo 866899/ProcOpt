@@ -10,6 +10,23 @@ namespace ProcOpt;
 
 public partial class App : Application
 {
+    static App()
+    {
+        // 单文件发布修复：WPF 打开 Popup/ContextMenu（右键菜单）时，内部会按 .NET Framework
+        // 时代的强名称（Version=4.0.0.0）解析 Accessibility 程序集，而单文件 bundle 中只有
+        // 当前版本（8.0.0.0），强名称解析失败抛 FileNotFoundException。
+        // 提前按简单名加载后，后续同名解析直接命中已加载实例；AssemblyResolve 再兜底一层。
+        try { _ = System.Reflection.Assembly.Load("Accessibility"); } catch { }
+        AppDomain.CurrentDomain.AssemblyResolve += static (_, e) =>
+        {
+            if (e.Name.StartsWith("Accessibility,", StringComparison.OrdinalIgnoreCase))
+            {
+                try { return System.Reflection.Assembly.Load("Accessibility"); } catch { }
+            }
+            return null;
+        };
+    }
+
     private static Mutex _mutex;
     private static EventWaitHandle _showEvent;
 
